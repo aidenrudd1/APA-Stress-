@@ -1,0 +1,4 @@
+.DS_Store
+# Raw data stays local; only processed data is committed
+data/*
+!data/processed/

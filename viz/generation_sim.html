@@ -1,0 +1,510 @@
+<title>Plugged In, Then and Now</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a survey "instrument" — step rail on top, two answer fields side by side (2018 | 2024), table readout below. */
+:root {
+  --bg: #eef1f4;
+  --surface: #fcfcfb;
+  --line: #d5dae0;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #75746f;
+  --gen-0: #eb6834;
+  --gen-1: #2a78d6;
+  --gen-2: #1baf7a;
+  --gen-3: #4a3aa7;
+  --chip: #e3e7ec;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111213; --surface: #1a1a19; --line: #2f3133; --ink: #f0efec; --ink-2: #c3c2b7; --ink-3: #96958d;
+    --gen-0: #d95926; --gen-1: #3987e5; --gen-2: #199e70; --gen-3: #5a48c0; --chip: #26282a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111213; --surface: #1a1a19; --line: #2f3133; --ink: #f0efec; --ink-2: #c3c2b7; --ink-3: #96958d;
+  --gen-0: #d95926; --gen-1: #3987e5; --gen-2: #199e70; --gen-3: #5a48c0; --chip: #26282a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-inline: 20px;
+  padding-block: 28px 48px;
+  display: grid;
+  gap: 22px;
+}
+@media (max-width: 520px) { .wrap { padding-inline: 16px; } }
+
+header { display: grid; gap: 8px; }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 48px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-wrap: balance;
+}
+.lede { margin: 0; max-width: 66ch; color: var(--ink-2); }
+
+/* Step rail */
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.rail {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0;
+  flex: 1 1 520px;
+}
+.rail button {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-2);
+  font: 500 13px/1 var(--font-body);
+  padding: 9px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.rail button .n { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+.rail button[aria-current="step"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.rail button[aria-current="step"] .n { color: var(--bg); opacity: 0.7; }
+.transport { display: flex; gap: 6px; }
+.transport button {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 13px/1 var(--font-body);
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 40px;
+}
+button:focus-visible { outline: 2px solid var(--gen-1); outline-offset: 2px; }
+
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.legend .hint { font-size: 13px; color: var(--ink-3); margin-right: 4px; }
+.legend button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  background: var(--chip);
+  color: var(--ink);
+  font: 500 13px/1 var(--font-body);
+  padding: 7px 11px 7px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.legend button[aria-pressed="true"] { border-color: var(--ink); background: var(--surface); }
+.legend .swatch { width: 11px; height: 11px; border-radius: 50%; }
+.legend .ages { color: var(--ink-3); font-family: var(--font-mono); font-size: 11px; }
+
+/* Panels */
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 860px) { .panels { grid-template-columns: 1fr; } }
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 18px 8px;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.year {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.question {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  min-height: 3em;
+  text-wrap: balance;
+}
+.field { position: relative; width: 100%; height: 440px; }
+.field canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+@media (max-width: 520px) { .field { height: 400px; } }
+
+.tip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 12px;
+  line-height: 1.35;
+  padding: 6px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 10px));
+  z-index: 2;
+}
+
+/* Readout table */
+.readout { display: grid; gap: 10px; }
+.readout h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 20px;
+  margin: 0;
+}
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { padding: 8px 12px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+th:first-child, td:first-child { text-align: left; white-space: normal; min-width: 170px; }
+thead th { font-weight: 500; color: var(--ink-2); font-size: 12.5px; }
+thead th .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+tbody tr.era th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 500;
+  background: var(--bg);
+}
+tbody tr:last-child td { border-bottom: 0; }
+td.hl { font-weight: 600; }
+
+.notes { color: var(--ink-3); font-size: 13px; max-width: 80ch; display: grid; gap: 6px; }
+.notes p { margin: 0; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">APA Stress in America · 2018 vs 2024 · adults 18+</div>
+    <h1>Plugged In, Then and Now</h1>
+    <p class="lede">Each dot is one real survey respondent, colored by generation. As the questions change, people move to the answer they gave. The left field is the 2018 survey and the right is 2024, so you can watch how each generation sorts itself on social media, screens, mental health and stress.</p>
+  </header>
+
+  <div class="controls">
+    <nav class="rail" id="rail" aria-label="Questions"></nav>
+    <div class="transport">
+      <button id="prev" type="button" aria-label="Previous question">←</button>
+      <button id="play" type="button">Pause</button>
+      <button id="next" type="button" aria-label="Next question">→</button>
+    </div>
+  </div>
+
+  <div class="legend" id="legend"><span class="hint">Highlight a generation:</span></div>
+
+  <div class="panels" id="panels"></div>
+
+  <section class="readout">
+    <h2 id="readout-title">Who answered what</h2>
+    <div class="table-scroll"><table id="table"></table></div>
+  </section>
+
+  <div class="notes">
+    <p>Each field shows 800 adults drawn from that year's survey in proportion to the survey weights, so one dot stands for about 1 in 800 U.S. adults. The 2018 and 2024 dots are different people. The percentages on the fields and in the table come from the full weighted surveys (2018: 3,858 adults; 2024: 3,936).</p>
+    <p>Generations use fixed birth years: Gen Z 1997–2012, Millennials 1981–1996, Gen X 1965–1980, Boomers &amp; older 1964 and earlier. In 2018 the Gen Z adults were 18–21; by 2024 they were 18–27. Questions marked "different question" cover a similar topic, but the wording or answer format changed between surveys.</p>
+    <p>"Not on social media" in 2018 means the person answered "not applicable". In 2024 it means they ticked "I do not use social media".</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="sim_data.js"></script>
+<script>
+(() => {
+  const D = window.SIM_DATA;
+  const GEN_AGES = ["born 1997+", "1981–96", "1965–80", "≤1964"];
+  const STEP_MS = 5200;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  let step = 0;
+  let highlight = null;
+  let playing = !reduceMotion;
+  let timer = null;
+
+  const css = () => {
+    const s = getComputedStyle(document.documentElement);
+    const v = (n) => s.getPropertyValue(n).trim();
+    return { ink: v("--ink"), ink2: v("--ink-2"), ink3: v("--ink-3"), surface: v("--surface"),
+             gens: [0, 1, 2, 3].map((i) => v(`--gen-${i}`)) };
+  };
+  let colors = css();
+
+  // ---------- Step rail ----------
+  const rail = document.getElementById("rail");
+  D.themes.forEach((t, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.innerHTML = `<span class="n">${i + 1}</span>${t}`;
+    b.addEventListener("click", () => { go(i); stop(); });
+    rail.appendChild(b);
+  });
+
+  // ---------- Legend ----------
+  const legend = document.getElementById("legend");
+  D.generations.forEach((g, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("aria-pressed", "false");
+    b.innerHTML = `<span class="swatch" style="background:var(--gen-${i})"></span>${g} <span class="ages">${GEN_AGES[i]}</span>`;
+    b.addEventListener("click", () => {
+      highlight = highlight === i ? null : i;
+      legend.querySelectorAll("button").forEach((el, j) => el.setAttribute("aria-pressed", String(highlight === j)));
+      renderTable();
+      panels.forEach((p) => p.draw());
+    });
+    legend.appendChild(b);
+  });
+
+  // ---------- Panels ----------
+  const panelsEl = document.getElementById("panels");
+  const panels = D.eras.map((era) => makePanel(era));
+
+  function makePanel(era) {
+    const el = document.createElement("section");
+    el.className = "panel";
+    el.innerHTML = `
+      <div class="panel-head"><div class="year">${era.year}</div><div class="tag"></div></div>
+      <p class="question"></p>
+      <div class="field"><canvas></canvas><div class="tip" hidden></div></div>`;
+    panelsEl.appendChild(el);
+    const field = el.querySelector(".field");
+    const canvas = el.querySelector("canvas");
+    const tip = el.querySelector(".tip");
+    const ctx = canvas.getContext("2d");
+    let W = 0, H = 0, r = 3;
+    let centers = [], radii = [];
+
+    const nodes = Array.from(era.gens, (g, i) => ({
+      gen: +g, i, x: 0, y: 0, tx: 0, ty: 0, switchAt: 0, bucket: -1,
+    }));
+
+    const sim = d3.forceSimulation(nodes)
+      .alphaDecay(0.012)
+      .velocityDecay(0.28)
+      .force("x", d3.forceX((d) => d.tx).strength(0.045))
+      .force("y", d3.forceY((d) => d.ty).strength(0.045))
+      .force("collide", d3.forceCollide(() => r + 0.7).iterations(2))
+      .on("tick", () => { applyPending(); draw(); })
+      .stop();
+
+    function size() {
+      const rect = field.getBoundingClientRect();
+      W = rect.width; H = rect.height;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      r = Math.max(1.6, Math.min(3, W / 200));
+      sim.force("collide").radius(r + 0.7);
+    }
+
+    function layout(s) {
+      const st = era.steps[s];
+      const n = st.buckets.length;
+      const counts = new Array(n).fill(0);
+      for (const ch of st.assign) counts[+ch]++;
+      const cols = n <= 3 ? n : 3;
+      const rows = Math.ceil(n / cols);
+      const top = 8;
+      centers = []; radii = [];
+      for (let b = 0; b < n; b++) {
+        const row = Math.floor(b / cols);
+        const inRow = row === rows - 1 ? n - row * cols : cols;
+        const col = b - row * cols;
+        const x = ((col + 0.5) / inRow) * W;
+        const y = top + 40 + ((row + 0.5) / rows) * (H - top - 40);
+        centers.push([x, y]);
+        radii.push(Math.sqrt(counts[b]) * (r + 0.7) * 1.05);
+      }
+      return st;
+    }
+
+    function setStep(s, animate) {
+      const st = layout(s);
+      const now = performance.now();
+      nodes.forEach((d) => {
+        d.bucket = +st.assign[d.i];
+        const [cx, cy] = centers[d.bucket];
+        d.nextX = cx; d.nextY = cy;
+        d.switchAt = animate ? now + Math.random() * 1100 : 0;
+      });
+      el.querySelector(".question").textContent = st.question;
+      el.querySelector(".tag").textContent = D.sameQuestion[s] ? "Same question both years" : "Different question";
+      applyPending(true);
+      if (animate) {
+        sim.alpha(1).restart();
+      } else {
+        nodes.forEach((d) => { d.x = d.tx + (Math.random() - 0.5) * 20; d.y = d.ty + (Math.random() - 0.5) * 20; });
+        sim.alpha(1);
+        for (let k = 0; k < 220; k++) sim.tick();
+        draw();
+      }
+    }
+
+    function applyPending(force) {
+      const now = performance.now();
+      let changed = false;
+      for (const d of nodes) {
+        if (d.nextX !== undefined && ((force && d.switchAt === 0) || now >= d.switchAt)) {
+          d.tx = d.nextX; d.ty = d.nextY; d.nextX = undefined;
+          changed = true;
+        }
+      }
+      // forceX/forceY cache their targets, so re-read them when any target moves
+      if (changed) {
+        sim.force("x").x((d) => d.tx);
+        sim.force("y").y((d) => d.ty);
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      for (const d of nodes) {
+        ctx.globalAlpha = highlight === null || highlight === d.gen ? 1 : 0.13;
+        ctx.fillStyle = colors.gens[d.gen];
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      drawLabels();
+    }
+
+    function drawLabels() {
+      const st = era.steps[step];
+      const pct = highlight === null ? st.pct : st.pctByGen[highlight];
+      ctx.textAlign = "center";
+      st.buckets.forEach((name, b) => {
+        const [cx, cy] = centers[b];
+        const ly = Math.max(30, cy - radii[b] - 10);
+        ctx.font = `600 ${W < 380 ? 17 : 20}px ${getComputedStyle(document.body).getPropertyValue("--font-display")}`;
+        ctx.fillStyle = colors.ink;
+        ctx.fillText(`${Math.round(pct[b])}%`, cx, ly);
+        ctx.font = `500 ${W < 380 ? 11 : 12}px "IBM Plex Sans", Arial, sans-serif`;
+        ctx.fillStyle = colors.ink2;
+        ctx.fillText(name, cx, ly - (W < 380 ? 19 : 22));
+      });
+    }
+
+    // Hover: find the nearest dot
+    function onMove(ev) {
+      const rect = canvas.getBoundingClientRect();
+      const x = ev.clientX - rect.left, y = ev.clientY - rect.top;
+      const d = sim.find(x, y, 8);
+      if (!d) { tip.hidden = true; return; }
+      const st = era.steps[step];
+      tip.textContent = `${D.generations[d.gen]} · ${st.buckets[d.bucket]}`;
+      tip.style.left = `${d.x}px`;
+      tip.style.top = `${d.y}px`;
+      tip.hidden = false;
+    }
+    canvas.addEventListener("pointermove", onMove);
+    canvas.addEventListener("pointerleave", () => { tip.hidden = true; });
+
+    // Initial positions: a loose cloud in the middle, then cluster
+    size();
+    nodes.forEach((d) => {
+      d.x = W / 2 + (Math.random() - 0.5) * W * 0.6;
+      d.y = H / 2 + (Math.random() - 0.5) * H * 0.6;
+      d.tx = d.x; d.ty = d.y;
+    });
+
+    return {
+      setStep, draw,
+      resize() { size(); setStep(step, false); },
+    };
+  }
+
+  // ---------- Table ----------
+  function renderTable() {
+    const table = document.getElementById("table");
+    document.getElementById("readout-title").textContent = `Who answered what: ${D.themes[step]}`;
+    const head = `<thead><tr><th>Answer</th><th>All adults</th>${D.generations.map((g, i) =>
+      `<th><span class="swatch" style="background:var(--gen-${i})"></span>${g}</th>`).join("")}</tr></thead>`;
+    const body = D.eras.map((era) => {
+      const st = era.steps[step];
+      const rows = st.buckets.map((b, k) =>
+        `<tr><td>${b}</td><td>${st.pct[k].toFixed(0)}%</td>${st.pctByGen.map((p, g) =>
+          `<td class="${highlight === g ? "hl" : ""}">${p[k].toFixed(0)}%</td>`).join("")}</tr>`).join("");
+      return `<tr class="era"><th colspan="6">${era.year} · ${st.question}</th></tr>${rows}`;
+    }).join("");
+    table.innerHTML = head + `<tbody>${body}</tbody>`;
+  }
+
+  // ---------- Stepping ----------
+  function go(s, animate = !reduceMotion) {
+    step = (s + D.themes.length) % D.themes.length;
+    rail.querySelectorAll("button").forEach((b, i) => {
+      if (i === step) { b.setAttribute("aria-current", "step"); b.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" }); }
+      else b.removeAttribute("aria-current");
+    });
+    panels.forEach((p) => p.setStep(step, animate));
+    renderTable();
+  }
+  const playBtn = document.getElementById("play");
+  function schedule() {
+    clearTimeout(timer);
+    if (playing) timer = setTimeout(() => { go(step + 1); schedule(); }, STEP_MS);
+    playBtn.textContent = playing ? "Pause" : "Play";
+  }
+  function stop() { playing = false; schedule(); }
+  playBtn.addEventListener("click", () => { playing = !playing; if (playing) go(step + 1); schedule(); });
+  document.getElementById("prev").addEventListener("click", () => { go(step - 1); stop(); });
+  document.getElementById("next").addEventListener("click", () => { go(step + 1); stop(); });
+
+  // Theme changes: re-read colors
+  const refresh = () => { colors = css(); panels.forEach((p) => p.draw()); };
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", refresh);
+  new MutationObserver(refresh).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  let resizeT, lastWidth = panelsEl.getBoundingClientRect().width;
+  new ResizeObserver(() => {
+    const w = panelsEl.getBoundingClientRect().width;
+    if (Math.abs(w - lastWidth) < 2) return;
+    lastWidth = w;
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => panels.forEach((p) => p.resize()), 120);
+  }).observe(panelsEl);
+
+  document.fonts?.ready.then(() => panels.forEach((p) => p.draw()));
+  go(0);
+  schedule();
+})();
+</script>
